@@ -15,7 +15,10 @@ from glmnetPrint import glmnetPrint; from glmnetCoef import glmnetCoef
 def glmnet_lasso(gene_list, expression_data):
     
     #check if parameters are of suitable size matrices
-    
+    if len(gene_list) != len(expression_data):
+        raise ValueError("Matrix must have the same number of rows.")
+    elif len(gene_list[0]!=1):
+        raise ValueError("Gene matrix contains more than one column.")
     
     #create variables for regression
     X = gene_list
