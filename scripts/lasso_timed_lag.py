@@ -29,23 +29,18 @@ def lasso_timed_lag(expression_data, time_data, target_gene, lags, lambda_val, s
     M = X_design.shape[1]
     
     #find index of largest time lag (time>50, for instance)
-    #use np.where() instead, more efficient
-    max_time_index=0
-    for i in range(M):
-        if time_index[0, i]>max_lag:
-            max_time_index=i #column number of the index of where maximum lag occurs
-            break
-        else:
-            continue
+    max_time_index_t = (np.where(time_index[0,:]>max_lag))[0]
+    max_time_index=max_time_index_t[0]
     
     y = X_design[target_gene, max_time_index:] #dim: 1x(M-max_time_index+1)
     y = y.transpose() #dim: (M-max_time_index+1)x1
     #print(max_time_index)
     
+    
     #create Am matrix, (essentially the X matrix in lasso regression)
     Am = np.empty(shape=[M-max_time_index, n_lags*N])
     Am_kernelized = np.empty(shape=[M-max_time_index, n_lags*N])
-    print("Am shape: ",Am_kernelized.shape)
+    #print("Am shape: ",Am_kernelized.shape)
     for i in range(n_lags):
         #find the non-smoothed version first
         Am[:,i*N:(i+1)*N] = X_design[:,max_time_index-lags[i]:M-lags[i]].transpose()
