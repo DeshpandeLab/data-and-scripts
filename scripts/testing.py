@@ -4,6 +4,7 @@ import pandas as pd
 import time
 from lasso_lag_input import *
 from lasso_timed_lag import *
+from lasso_all_genes import *
 
 #testing data
 file_path1 = "/Users/emilyxie/Downloads/data-and-scripts/data/gene_list.txt"
@@ -33,7 +34,13 @@ time_data = time_data.to_numpy()
 #test1 = time_data[0,91:]
 #print(test1.shape)
 
-new_bm = lasso_timed_lag(expression_data, time_data, target_gene, [10,20,30], 0.1, 1)
+new_bm = lasso_timed_lag(expression_data, time_data, target_gene, [10,20,50], 0.1, 1)
 
-print(new_bm)
+#print(new_bm)
 print("bm with kernel shape: ", new_bm.shape)
+
+
+#testing lasso_all_genes
+(bm_out, const) = lasso_all_genes(expression_data,time_data,[10,20,50],0.1,1)
+print(bm_out)
+print(const)
