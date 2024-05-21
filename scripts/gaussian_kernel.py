@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import scipy as scipy
+import time
 
 
 def gaussian_kernel(time_data, time_lag_interval, sigma):
@@ -14,21 +15,31 @@ def gaussian_kernel(time_data, time_lag_interval, sigma):
     #OUTPUTS:
     #kernal_matrix: time_lag_interval x M matrix, corresponding to each lagged time value and time point in the data
     
-    r = time_lag_interval.shape[0]
+    start_time = time.time()
+
+    r = time_lag_interval.shape[1]
     c = time_data.shape[1]
     kernel_matrix = np.empty(shape=[r, c])
     
+
+    #change loops into nonloops
     #build matrix
     for i in range(r):
         for j in range(c):
-            distance = (time_lag_interval[i,0]-time_data[0,j])**2
-            kernel_matrix[i,j] = np.exp(-distance/sigma**2)
+            distance = (time_lag_interval[0,i]-time_data[0,j])**2
+            kernel_matrix[i,j] = np.exp(-distance/sigma)
     
+    #print(kernel_matrix[31:35,0])
+
     #standardize matrix
     for i in range(r):
         total = np.sum(kernel_matrix[i,:])
-        for j in range(c):
-            kernel_matrix[i,j] = kernel_matrix[i,j]/total
+        kernel_matrix[i,:] = kernel_matrix[i,:]/total
     
+    #print("1st col ", kernel_matrix[0,:])
     
+    end_time = time.time()
+    run_time = end_time - start_time
+    #print("gaussian kernal program runtime: ", run_time)
+
     return kernel_matrix

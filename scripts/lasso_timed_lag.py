@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import scipy as scipy
+import time
 from gaussian_kernel import *
 from glmnet_lasso import *
 
@@ -19,7 +20,8 @@ def lasso_timed_lag(expression_data, time_data, target_gene, lags, lambda_val, s
     #OUTPUTS:
     #bm: nNx1 matrix of predicted coefficients, where n is the number of lags (i.e. len(lags)) and N genes
     
-    
+    start_time = time.time()
+
     X_design = np.asarray(expression_data)
     time_index = np.asarray(time_data)
     
@@ -46,21 +48,30 @@ def lasso_timed_lag(expression_data, time_data, target_gene, lags, lambda_val, s
         Am[:,i*N:(i+1)*N] = X_design[:,max_time_index-lags[i]:M-lags[i]].transpose()
         
         #find kernel matrix for X design matrix (different for each lag)
-        dimen = 100 #(M-lags[i]+1) - (max_time_index-lags[i])
-        time_stamp = np.arange(0,dimen).reshape(dimen,1)
+        dimen = N #(M-lags[i]+1) - (max_time_index-lags[i])
+        #time_stamp = np.arange(0,dimen).reshape(dimen,1)
+        #FIX time_stamp
+        time_stamp = time_index[0,np.where(time_index>lags[i])] - lags[i]
+        #print(time_stamp)
         X_kernel = gaussian_kernel(time_data, time_stamp, sigma)
+        #print(X_kernel[0,0])
+        #print("kernel: ",np.where(X_kernel[0]>0.9)[0])
+        #print(X_kernel[0,np.where(X_kernel[0]>0.9)])
         
         #apply normalized kernal matrix to Am
-        X_kernel_sec = X_kernel[:,max_time_index-lags[i]:M-lags[i]+1].transpose()
-        
-        Am_kernelized[:,i*N:(i+1)*N] = np.matmul(Am[:,i*N:(i+1)*N], X_kernel[:,i*N:(i+1)*N])
+        X_kernel_sec = X_kernel[:,max_time_index-lags[i]:M-lags[i]]
+        Am_kernelized[:,i*N:(i+1)*N] = np.matmul(X_kernel_sec, Am[:,i*N:(i+1)*N])
+        #Am_kernelized[:,i*N:(i+1)*N] = np.matmul(Am[:,i*N:(i+1)*N], X_kernel[:,i*N:(i+1)*N])
     
-    #print(Am_kernelized.shape)
-    #print(y.shape)
+    #print(Am_kernelized)
+    #print("Am shape: ", Am_kernelized.shape)
     
     
     #run glmnet regression
-    bm = glmnet_lasso(y, Am_kernelized, 0.1)
+    bm = glmnet_lasso(y, Am_kernelized, lambda_val)
     
+    end_time = time.time()
+    run_time = end_time - start_time
+    print("program run time: ", run_time)
     
     return bm
