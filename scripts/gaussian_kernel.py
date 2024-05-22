@@ -9,7 +9,7 @@ def gaussian_kernel(time_data, time_lag_interval, sigma):
     
     #INPUTS:
     #time_data: 1xM matrix of time points each expression data corresponds to index-wise
-    #time_lag_interval: the time interval on which a kernel is needed (y's time interval with lag)
+    #time_lag_interval: 1xN matrix of the time interval on which a kernel is needed (y's time interval with lag)
     #sigma: kernel smoothing parameter, set by user
     
     #OUTPUTS:
@@ -23,18 +23,19 @@ def gaussian_kernel(time_data, time_lag_interval, sigma):
     
 
     #change loops into nonloops
-    #build matrix
-    for i in range(r):
-        for j in range(c):
-            distance = (time_lag_interval[0,i]-time_data[0,j])**2
-            kernel_matrix[i,j] = np.exp(-distance/sigma)
+    #build matrix (NO LOOP)
+    #for i in range(r):
+        #for j in range(c):
+            #distance = (time_lag_interval[0,i]-time_data[0,j])**2
+            #kernel_matrix[i,j] = np.exp(-distance/sigma)
+    distance_mx = (time_lag_interval.T - time_data)**2
+    kernel_matrix = np.exp(-distance_mx / sigma)
     
     #print(kernel_matrix[31:35,0])
 
-    #standardize matrix
-    for i in range(r):
-        total = np.sum(kernel_matrix[i,:])
-        kernel_matrix[i,:] = kernel_matrix[i,:]/total
+    #standardize matrix (NO LOOP)
+    total = np.sum(kernel_matrix, axis=1)
+    kernel_matrix = kernel_matrix/total[:,np.newaxis]
     
     #print("1st col ", kernel_matrix[0,:])
     
