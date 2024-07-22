@@ -7,18 +7,18 @@ from lasso_timed_lag import *
 from lasso_all_genes import *
 
 #testing data
-file_path1 = "/Users/emilyxie/Downloads/data-and-scripts/data/gene_list.txt"
+file_path1 = "./data/gene_list.txt"
 gene_list = pd.read_csv(file_path1, header=None, delim_whitespace=True)
 #print(gene_list)
 
-file_path2 = "/Users/emilyxie/Downloads/data-and-scripts/data/X_SCODE_data.csv"
+file_path2 = "./data/X_SCODE_data.csv"
 expression_data = pd.read_csv(file_path2, header=None)
 #print(expression_data)
 expression_data = expression_data.to_numpy()
 
-target_gene=99
+target_gene=0
 
-bm = lasso_lag_input(expression_data, target_gene, [5,10,50], 0.3)
+#bm = lasso_lag_input(expression_data, target_gene, [10,20,30], 2)
 #print(bm)
 #print("bm without time lag shape: ", bm.shape)
 
@@ -27,17 +27,17 @@ bm = lasso_lag_input(expression_data, target_gene, [5,10,50], 0.3)
 
 
 #testing next step
-time_data = pd.read_csv("/Users/emilyxie/Downloads/data-and-scripts/scripts/ptime.txt", header=None)
+time_data = pd.read_csv("./scripts/ptime.txt", header=None)
 
 time_data = time_data.to_numpy()
 #print(time_data.shape)
 #test1 = time_data[0,91:]
 #print(test1.shape)
 
-new_bm = lasso_timed_lag(expression_data, time_data, target_gene, [30], 0.01, 2)
-
-#print(new_bm)
-#print("bm with kernel shape: ", new_bm.shape)
+new_bm = lasso_timed_lag(expression_data, time_data, target_gene, [10,20,30], 0.01, 2)
+print(new_bm[0])
+print(new_bm[1:])
+print("bm with kernel shape: ", new_bm.shape)
 
 
 #testing lasso_all_genes

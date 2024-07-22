@@ -36,17 +36,13 @@ def lasso_timed_lag(expression_data, time_data, target_gene, lags, lambda_val, s
     
     y = X_design[target_gene, max_time_index:] #dim: 1x(M-max_time_index+1)
     y = y.transpose() #dim: (M-max_time_index+1)x1
-    #print(max_time_index)
+    print(y.shape)
     
     
     #create Am matrix, (essentially the X matrix in lasso regression)
-    Am = np.empty(shape=[M-max_time_index, n_lags*N])
     Am_kernelized = np.empty(shape=[M-max_time_index, n_lags*N])
     #print("Am shape: ",Am_kernelized.shape)
     for i in range(n_lags):
-        #find the non-smoothed version first
-        Am[:,i*N:(i+1)*N] = X_design[:,max_time_index-lags[i]:M-lags[i]].transpose()
-        
         #find kernel matrix for X design matrix (different for each lag)
         dimen = N #(M-lags[i]+1) - (max_time_index-lags[i])
         #time_stamp = np.arange(0,dimen).reshape(dimen,1)
@@ -54,21 +50,29 @@ def lasso_timed_lag(expression_data, time_data, target_gene, lags, lambda_val, s
         #time_stamp = time_index[0,np.where(time_index>lags[i])] - lags[i]
         time_stamp = time_index - lags[i]
         #time_stamp = time_stamp.reshape((1,time_stamp.shape[0]))
-        print(time_stamp)
-        print(time_stamp.shape)
-        X_kernel = gaussian_kernel(time_data[:,0:5], time_stamp[:,0:5], sigma)
-        print(X_kernel.shape)
-        print(X_kernel[0:5,0:5])
-        #print(X_kernel[0,np.where(X_kernel[0]>0.9)])
-        
+      #  print(i)
+      #  print(time_stamp)
+        kernel = gaussian_kernel(time_data, time_stamp, sigma)
+      #  print(Am_kernelized.shape)
         #apply normalized kernal matrix to Am
-        X_kernel_sec = X_kernel[:,max_time_index-lags[i]:M-lags[i]]
-        Am_kernelized[:,i*N:(i+1)*N] = np.matmul(X_kernel_sec, Am[:,i*N:(i+1)*N])
+        kernel = kernel[max_time_index:M,:]
+        print(kernel.shape)
+        print(kernel[0:6,0:6])
+        total = np.sum(kernel, axis=1)
+            #standardize matrix (NO LOOP)
+        print("Max Time index:",max_time_index)
+        print("Total shape:",total.shape)
+        print("Total head:",total[0:6])
+
+        Am_kernelized[:,i*N:(i+1)*N] = np.matmul(kernel,X_design.T)/total[:,None]
         #Am_kernelized[:,i*N:(i+1)*N] = np.matmul(Am[:,i*N:(i+1)*N], X_kernel[:,i*N:(i+1)*N])
-    print(X_kernel[0:5,0:5])
-    #print(Am_kernelized)
-    #print("Am shape: ", Am_kernelized.shape)
-    
+    #print(X_kernel[0:5,0:5])
+    print(Am_kernelized[0:6,0:6])
+    #print(Am_kernelized[0:6,100:106])
+    #print(Am_kernelized[0:6,200:206])
+    print("Am shape: ", Am_kernelized.shape)
+    print(y.shape)
+    print(y[0:6])
     
     #run glmnet regression
     bm = glmnet_lasso(y, Am_kernelized, lambda_val)

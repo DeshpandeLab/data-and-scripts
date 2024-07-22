@@ -30,12 +30,10 @@ def gaussian_kernel(time_data, time_lag_interval, sigma):
             #kernel_matrix[i,j] = np.exp(-distance/sigma)
     distance_mx = (time_lag_interval.T - time_data)**2
     kernel_matrix = np.exp(-distance_mx / sigma)
-    
-    #print(kernel_matrix[31:35,0])
-
+    print(kernel_matrix[0:6,0:6])
     #standardize matrix (NO LOOP)
-    total = np.sum(kernel_matrix, axis=1)
-    kernel_matrix = kernel_matrix/total[:,np.newaxis]
+    total = np.sum(kernel_matrix, axis=0)
+    #kernel_matrix = kernel_matrix/total[:,np.newaxis]
     
     #print("1st col ", kernel_matrix[0,:])
     
