@@ -35,9 +35,9 @@ time_data = time_data.to_numpy()
 #print(test1.shape)
 
 new_bm = lasso_timed_lag(expression_data, time_data, target_gene, [10,20,30], 0.01, 2)
-print(new_bm[0])
-print(new_bm[1:])
-print("bm with kernel shape: ", new_bm.shape)
+#print(new_bm[0])
+#print(new_bm[1:])
+#print("bm with kernel shape: ", new_bm.shape)
 
 
 #testing lasso_all_genes

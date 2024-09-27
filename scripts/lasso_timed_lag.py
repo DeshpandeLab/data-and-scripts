@@ -36,12 +36,11 @@ def lasso_timed_lag(expression_data, time_data, target_gene, lags, lambda_val, s
     
     y = X_design[target_gene, max_time_index:] #dim: 1x(M-max_time_index+1)
     y = y.transpose() #dim: (M-max_time_index+1)x1
-    print(y.shape)
+    #print(y.shape)
     
     
     #create Am matrix, (essentially the X matrix in lasso regression)
     Am_kernelized = np.empty(shape=[M-max_time_index, n_lags*N])
-    #print("Am shape: ",Am_kernelized.shape)
     for i in range(n_lags):
         #find kernel matrix for X design matrix (different for each lag)
         dimen = N #(M-lags[i]+1) - (max_time_index-lags[i])
@@ -56,23 +55,37 @@ def lasso_timed_lag(expression_data, time_data, target_gene, lags, lambda_val, s
       #  print(Am_kernelized.shape)
         #apply normalized kernal matrix to Am
         kernel = kernel[max_time_index:M,:]
-        print(kernel.shape)
-        print(kernel[0:6,0:6])
+        #print(kernel.shape)
+        #print(kernel[0:6,0:6])
         total = np.sum(kernel, axis=1)
             #standardize matrix (NO LOOP)
-        print("Max Time index:",max_time_index)
-        print("Total shape:",total.shape)
-        print("Total head:",total[0:6])
+        #print("Max Time index:",max_time_index)
+        #print("Total shape:",total.shape)
+        #print("Total head:",total[0:6])
 
         Am_kernelized[:,i*N:(i+1)*N] = np.matmul(kernel,X_design.T)/total[:,None]
         #Am_kernelized[:,i*N:(i+1)*N] = np.matmul(Am[:,i*N:(i+1)*N], X_kernel[:,i*N:(i+1)*N])
     #print(X_kernel[0:5,0:5])
-    print(Am_kernelized[0:6,0:6])
-    #print(Am_kernelized[0:6,100:106])
-    #print(Am_kernelized[0:6,200:206])
+    print("Am",Am_kernelized[0:6,0:6])
+    print(Am_kernelized[0:6,100:106])
+    print(Am_kernelized[0:6,200:206])
     print("Am shape: ", Am_kernelized.shape)
-    print(y.shape)
-    print(y[0:6])
+   
+   #compare with MATLAB Am values
+    Am_mat = pd.read_csv("./scripts/Am_matlab.csv", header=None)
+    Am_mat = Am_mat.to_numpy()
+    #Mat Am structured differently, convert to python arrangement for comparison
+    Am_arr = Am_mat[:,n_lags-1::n_lags]
+    for i in range(n_lags-1)[::-1]:
+      Am1 = Am_mat[:,i::n_lags]
+      Am_arr = np.concatenate([Am_arr,Am1],axis=1)
+     
+    #print("Am_arr: ",Am_arr[0:6,0:6])
+    #print("Am_arr shape: ", Am_arr.shape) 
+      
+    Am_diff = np.abs(Am_kernelized-Am_arr)
+    print("difference in Am between Mat & Python: ", Am_diff[0:6,0:6])
+
     
     #run glmnet regression
     bm = glmnet_lasso(y, Am_kernelized, lambda_val)
