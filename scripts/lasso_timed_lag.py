@@ -5,6 +5,7 @@ import scipy as scipy
 import time
 from gaussian_kernel import *
 from glmnet_lasso import *
+from array_reorder import *
 
 
 def lasso_timed_lag(expression_data, time_data, target_gene, lags, lambda_val, sigma):
@@ -45,7 +46,6 @@ def lasso_timed_lag(expression_data, time_data, target_gene, lags, lambda_val, s
         #find kernel matrix for X design matrix (different for each lag)
         dimen = N #(M-lags[i]+1) - (max_time_index-lags[i])
         #time_stamp = np.arange(0,dimen).reshape(dimen,1)
-        #FIX time_stamp
         #time_stamp = time_index[0,np.where(time_index>lags[i])] - lags[i]
         time_stamp = time_index - lags[i]
         #time_stamp = time_stamp.reshape((1,time_stamp.shape[0]))
@@ -66,22 +66,13 @@ def lasso_timed_lag(expression_data, time_data, target_gene, lags, lambda_val, s
         Am_kernelized[:,i*N:(i+1)*N] = np.matmul(kernel,X_design.T)/total[:,None]
         #Am_kernelized[:,i*N:(i+1)*N] = np.matmul(Am[:,i*N:(i+1)*N], X_kernel[:,i*N:(i+1)*N])
     #print(X_kernel[0:5,0:5])
-    print("Am",Am_kernelized[0:6,0:6])
-    print(Am_kernelized[0:6,100:106])
-    print(Am_kernelized[0:6,200:206])
+    #print("Am",Am_kernelized[0:6,0:6])
     print("Am shape: ", Am_kernelized.shape)
    
-   #compare with MATLAB Am values
+   #compare with MATLAB Am values using array_reorder function
     Am_mat = pd.read_csv("./scripts/Am_matlab.csv", header=None)
-    Am_mat = Am_mat.to_numpy()
     #Mat Am structured differently, convert to python arrangement for comparison
-    Am_arr = Am_mat[:,n_lags-1::n_lags]
-    for i in range(n_lags-1)[::-1]:
-      Am1 = Am_mat[:,i::n_lags]
-      Am_arr = np.concatenate([Am_arr,Am1],axis=1)
-     
-    #print("Am_arr: ",Am_arr[0:6,0:6])
-    #print("Am_arr shape: ", Am_arr.shape) 
+    Am_arr = array_reorder(Am_mat,n_lags)
       
     Am_diff = np.abs(Am_kernelized-Am_arr)
     print("difference in Am between Mat & Python: ", Am_diff[0:6,0:6])
